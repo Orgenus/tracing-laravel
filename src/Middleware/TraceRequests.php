@@ -106,7 +106,7 @@ class TraceRequests
      */
     protected function tagResponseData(Span $span, Request $request, $response): void
     {
-        if (method_exists($request->route(), 'getActionName')) {
+        if (!is_null($request->route()) && method_exists($request->route(), 'getActionName')) {
             $span->tag('laravel_action', $request->route()->getActionName());
         }
 
