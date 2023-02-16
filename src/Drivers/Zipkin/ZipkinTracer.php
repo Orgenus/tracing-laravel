@@ -3,7 +3,6 @@
 namespace Vinelab\Tracing\Drivers\Zipkin;
 
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Config;
 use Ramsey\Uuid\Uuid;
 use Vinelab\Tracing\Contracts\Extractor;
 use Vinelab\Tracing\Contracts\Injector;
@@ -92,6 +91,16 @@ class ZipkinTracer implements Tracer
     protected $uuid;
 
     /**
+     * @var bool
+     */
+    protected $queue;
+
+    /**
+     * @var string
+     */
+    protected $queueChannel;
+
+    /**
      * @var array
      */
     protected $extractionFormats = [];
@@ -116,6 +125,8 @@ class ZipkinTracer implements Tracer
         int $port,
         ?bool $usesTraceId128bits = false,
         ?int $requestTimeout = 5,
+        ?bool $queue = false,
+        ?string $queueChannel = "zipkin",
         ?Reporter $reporter = null
     ) {
         $this->serviceName = $serviceName;
@@ -123,6 +134,8 @@ class ZipkinTracer implements Tracer
         $this->port = $port;
         $this->usesTraceId128bits = $usesTraceId128bits;
         $this->requestTimeout = $requestTimeout;
+        $this->queue = $queue;
+        $this->queueChannel = $queueChannel;
         $this->reporter = $reporter;
     }
 
@@ -310,9 +323,6 @@ class ZipkinTracer implements Tracer
      */
     public function flush(): void
     {
-        /*Config::get('tracing.queue')*/
-
-
         $this->tracing->getTracer()->flush();
         $this->rootSpan = null;
         $this->currentSpan = null;
@@ -324,9 +334,9 @@ class ZipkinTracer implements Tracer
      */
     protected function createReporter(): Reporter
     {
-        if(Config::get('tracing.queue', false) && !$this->reporter){
+        if($this->queue && !$this->reporter){
             return new QueueReporter(
-                Config::get('tracing.queue_channel', "zipkin")
+                $this->queueChannel
             );
         }
 

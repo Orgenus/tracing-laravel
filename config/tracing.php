@@ -86,7 +86,7 @@ return [
     |
     */
 
-    'queue' => true,
+    'queue' => false,
     'queue_channel' => env('ZIPKIN_QUEUE', 'zipkin'),
 
     /*

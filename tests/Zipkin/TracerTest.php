@@ -7,6 +7,7 @@ use Google\Cloud\PubSub\Message;
 use GuzzleHttp\Psr7\Request as PsrRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Queue;
 use Mockery;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
@@ -14,6 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Vinelab\Tracing\Contracts\SpanContext;
 use Vinelab\Tracing\Drivers\Zipkin\ZipkinTracer;
 use Vinelab\Tracing\Propagation\Formats;
+use Vinelab\Tracing\Reporters\QueueReporter;
 use Vinelab\Tracing\Tests\Fixtures\NoopReporter;
 use Zipkin\Propagation\TraceContext;
 
@@ -79,7 +81,7 @@ class TracerTest extends TestCase
     {
         $reporter = Mockery::spy(NoopReporter::class);
 
-        $tracer = $this->createTracer($reporter, 'example', 'localhost', 9411, 5, true);
+        $tracer = $this->createTracer($reporter, 'example', 'localhost', 9411, 5, false, '', true);
         $tracer->startSpan('Example');
         $tracer->flush();
 
@@ -344,6 +346,19 @@ class TracerTest extends TestCase
         $this->assertMatchesRegularExpression('/x-b3-traceid: \w/', Arr::get($request, 'headers.0', ''));
         $this->assertMatchesRegularExpression('/x-b3-spanid: \w/', Arr::get($request, 'headers.1', ''));
         $this->assertMatchesRegularExpression('/x-b3-sampled: \d/', Arr::get($request, 'headers.2', ''));
+    }
+
+    public function test_queue_enqueue(){
+
+        Queue::fake();
+
+        $reporter = Mockery::spy(QueueReporter::class);
+
+        $tracer = $this->createTracer($reporter, 'orders', '127.0.0.1', 9114, 30, true);
+        $tracer->startSpan('Example');
+        $tracer->flush();
+
+
     }
 
     /**

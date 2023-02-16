@@ -23,10 +23,12 @@ trait InteractsWithZipkin
         string $host = 'localhost',
         int $port = 9411,
         int $requestTimeout = 5,
+        bool $queue = false,
+        string $queueChannel = "zipkin",
         bool $usesTraceId128bits = false
     ): ZipkinTracer
     {
-        $tracer = new ZipkinTracer($serviceName, $host, $port, $usesTraceId128bits, $requestTimeout, $reporter);
+        $tracer = new ZipkinTracer($serviceName, $host, $port, $usesTraceId128bits, $requestTimeout, $queue, $queueChannel, $reporter);
         $tracer->init();
 
         return $tracer;
