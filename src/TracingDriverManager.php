@@ -52,8 +52,8 @@ class TracingDriverManager extends Manager
             $this->config->get('tracing.zipkin.port'),
             $this->config->get('tracing.zipkin.options.128bit'),
             $this->config->get('tracing.zipkin.options.request_timeout', 5),
-            $this->config->get('tracing.zipkin.queue', false),
-            $this->config->get('tracing.zipkin.queue_channel', 'zipkin')
+            $this->config->get('tracing.queue', false),
+            $this->config->get('tracing.queue_channel', 'zipkin')
         );
 
         ZipkinTracer::setMaxTagLen(
