@@ -3,6 +3,7 @@
 namespace Vinelab\Tracing\Drivers\Zipkin;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Config;
 use Ramsey\Uuid\Uuid;
 use Vinelab\Tracing\Contracts\Extractor;
 use Vinelab\Tracing\Contracts\Injector;
@@ -25,6 +26,7 @@ use Vinelab\Tracing\Drivers\Zipkin\Injectors\ZipkinInjector;
 use Vinelab\Tracing\Exceptions\UnregisteredFormatException;
 use Vinelab\Tracing\Exceptions\UnresolvedCollectorIpException;
 use Vinelab\Tracing\Propagation\Formats;
+use Vinelab\Tracing\Reporters\QueueReporter;
 use Zipkin\Endpoint;
 use Zipkin\Reporter;
 use Zipkin\Reporters\Http as HttpReporter;
@@ -308,6 +310,9 @@ class ZipkinTracer implements Tracer
      */
     public function flush(): void
     {
+        /*Config::get('tracing.queue')*/
+
+
         $this->tracing->getTracer()->flush();
         $this->rootSpan = null;
         $this->currentSpan = null;
@@ -319,6 +324,12 @@ class ZipkinTracer implements Tracer
      */
     protected function createReporter(): Reporter
     {
+        if(Config::get('tracing.queue', false) && !$this->reporter){
+            return new QueueReporter(
+                Config::get('tracing.queue_channel', "zipkin")
+            );
+        }
+
         if (!$this->reporter) {
             return new HttpReporter([
                 'endpoint_url' => sprintf('http://%s:%s/api/v2/spans', $this->host, $this->port),
